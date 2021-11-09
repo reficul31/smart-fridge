@@ -9,13 +9,8 @@ UNI used to access the database: sb4539 <br>
 URL of web application: http://35.231.48.22:5000/
 
 ## Setup Instructions (edit)
-1. Install all dependencies
-2. Create sqlite database:
-    * `flask db init`
-    * `flask db migrate`
-    * `flask db upgrade`
-    * `python add_data.py`
-3. Run the application `python run.py`
+1. Install all dependencies `pip install -r requirement.txt`
+3. Run the application `python server.py`
 
 ## Objective
 Our objective was to construct a web-based Smart Refrigerator Management System that allows the user to manage the refrigerator contents and shopping lists efficiently. It includes functionalities such as adding new items along with their category, quantity, price, expiry date, and store information, removing or updating existing items, and alerting the user when an item is about to expire. This helps the user view the contents of the refrigerator remotely, prevents food wastage by keeping a track of the expiry dates, automatically generates a shopping list based upon expired or expiring items, and regulates the temperature 

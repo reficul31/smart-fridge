@@ -128,6 +128,8 @@ def fridge(fid):
                 temp = request.form[key]
                 query = "UPDATE settings SET temp={} WHERE locid={} and fid={}".format(temp, locid, fid)
                 db.session.execute(query)
+                query = "INSERT INTO log(fid, message) VALUES ({}, '{}')".format(fid, "User changed temperatire setting {}: {}".format(locid, temp))
+                db.session.execute(query)
             db.session.commit()
         except Exception as e:
             print(e)
@@ -160,6 +162,8 @@ def shopping(fid):
             query = query[:-1] + ";"
             db.session.execute(query)
             db.session.commit()
+            query = "INSERT INTO log(fid, message) VALUES ({}, '{}')".format(fid, "User created a shopping list")
+            db.session.execute(query)
     except Exception as e:
         print(e)
         db.session.rollback()
@@ -178,7 +182,9 @@ def dashboard():
             uid = current_user.id
             model = request.form['model']
             nickname = request.form['nickname']
-            db.session.execute("INSERT INTO fridge(uid, model, nickname) VALUES ({},'{}','{}')".format(uid, model, nickname))
+            fid = db.session.execute("INSERT INTO fridge(uid, model, nickname) VALUES ({},'{}','{}') RETURNING fid".format(uid, model, nickname)).first()
+            query = "INSERT INTO log(fid, message) VALUES ({}, '{}')".format(fid[0], "User added a new fridge: {}".format(nickname))
+            db.session.execute(query)
             db.session.commit()
         fridges = db.session.execute("SELECT * FROM fridge WHERE uid={}".format(current_user.id)).all()  
 
@@ -224,7 +230,10 @@ def add(fid):
             else:
                 result = db.session.execute("SELECT catid from content where conid={}".format(conid))
                 catid = result.first()[0]
+            
             db.session.execute("INSERT INTO stores(fid, conid, catid, amount, unit, price, store, expiry) VALUES ({},{},{},{},'{}',{}, '{}', DATE('{}'));".format(fid, conid, catid, amount, unit, price, store, expiry))
+            query = "INSERT INTO log(fid, message) VALUES ({}, '{}')".format(fid, "User added a item in fridge {}: {}".format(fid, conid))
+            db.session.execute(query)
             db.session.commit()
             return redirect("/fridge/{}".format(fid))
     except Exception as e:
@@ -252,8 +261,9 @@ def edit():
     if request.method == 'POST':
         try:
             amount = request.form['amount']
-
             query = text("UPDATE stores SET amount={} where fid={} and conid={} and catid={};".format(amount, fid, conid, catid))
+            db.session.execute(query)
+            query = "INSERT INTO log(fid, message) VALUES ({}, '{}')".format(fid, "User added a edited item in fridge {}: {}".format(fid, conid))
             db.session.execute(query)
             db.session.commit()
             return redirect("/fridge/{}".format(fid))
@@ -281,6 +291,8 @@ def delete():
 
     try:
         query = text("DELETE from stores where fid={} and conid={} and catid={};".format(fid, conid, catid))
+        db.session.execute(query)
+        query = "INSERT INTO log(fid, message) VALUES ({}, '{}')".format(fid, "User deleted a item in fridge {}: {}".format(fid, conid))
         db.session.execute(query)
         db.session.commit()
     except Exception as e:
